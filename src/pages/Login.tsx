@@ -5,7 +5,7 @@ import { useAuth, MOCK_EMAIL, MOCK_PASSWORD } from "@/context/AuthContext";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
-import { LogIn, Mail, Key, Loader2 } from "lucide-react";
+import { LogIn, Mail, Key, Loader2, Info } from "lucide-react";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 
 const Login = () => {
@@ -36,6 +36,11 @@ const Login = () => {
     }
   };
 
+  const fillDefaultCredentials = () => {
+    setEmail(MOCK_EMAIL);
+    setPassword(MOCK_PASSWORD);
+  };
+
   return (
     <div className="container max-w-md mx-auto py-12 px-4">
       <Card className="backdrop-blur-sm border-opacity-40 shadow-lg">
@@ -56,6 +61,14 @@ const Login = () => {
                 </AlertDescription>
               </Alert>
             )}
+            
+            <Alert className="border border-blue-300 bg-blue-50">
+              <Info className="h-4 w-4 text-blue-500" />
+              <AlertDescription className="text-blue-700 text-sm ml-2">
+                Use these credentials to login: <strong>{MOCK_EMAIL}</strong> / <strong>{MOCK_PASSWORD}</strong>
+              </AlertDescription>
+            </Alert>
+            
             <div className="space-y-2">
               <div className="flex items-center">
                 <Mail className="mr-2 h-4 w-4 text-muted-foreground" />
@@ -120,9 +133,17 @@ const Login = () => {
               type="button" 
               variant="outline" 
               className="w-full" 
+              onClick={fillDefaultCredentials}
+            >
+              Fill Test Account Credentials
+            </Button>
+            <Button 
+              type="button" 
+              variant="outline" 
+              className="w-full" 
               onClick={() => mockLogin()}
             >
-              Use Test Account
+              One-Click Login
             </Button>
             <p className="text-center text-sm text-muted-foreground">
               Don't have an account?{" "}

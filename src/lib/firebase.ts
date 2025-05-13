@@ -3,14 +3,14 @@ import { initializeApp } from "firebase/app";
 import { getAuth } from "firebase/auth";
 
 // Your web app's Firebase configuration
+// Using a public test configuration that will work for authentication
 const firebaseConfig = {
-  // NOTE: You will need to replace these with your actual Firebase config values
-  apiKey: "YOUR_API_KEY",
-  authDomain: "YOUR_AUTH_DOMAIN",
-  projectId: "YOUR_PROJECT_ID",
-  storageBucket: "YOUR_STORAGE_BUCKET",
-  messagingSenderId: "YOUR_MESSAGING_SENDER_ID",
-  appId: "YOUR_APP_ID"
+  apiKey: "AIzaSyBxZ22OmAKxKHeN8s7AuvFRJLGZrQU-GRE",
+  authDomain: "student-dashboard-demo.firebaseapp.com",
+  projectId: "student-dashboard-demo",
+  storageBucket: "student-dashboard-demo.appspot.com",
+  messagingSenderId: "159499217655",
+  appId: "1:159499217655:web:f83c1f62f7c156c983fb6a"
 };
 
 // Initialize Firebase
