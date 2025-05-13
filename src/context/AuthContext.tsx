@@ -1,6 +1,8 @@
-
 import React, { createContext, useContext, useEffect, useState } from "react";
 import { useToast } from "@/hooks/use-toast";
+import { User, onAuthStateChanged, signOut } from 'firebase/auth';
+import { auth } from '@/lib/firebase';
+import { useNavigate } from 'react-router-dom';
 
 // Default user credentials
 const DEFAULT_EMAIL = "admin@example.com";
@@ -13,7 +15,7 @@ interface User {
 }
 
 interface AuthContextType {
-  currentUser: User | null;
+  user: User | null;
   loading: boolean;
   login: (email: string, password: string) => Promise<void>;
   signup: (email: string, password: string) => Promise<void>;
@@ -21,33 +23,37 @@ interface AuthContextType {
   mockLogin: () => void;
 }
 
-const AuthContext = createContext<AuthContextType | null>(null);
+const AuthContext = createContext<AuthContextType>({
+  user: null,
+  loading: true,
+  logout: async () => {},
+});
 
-export const useAuth = () => {
-  const context = useContext(AuthContext);
-  if (!context) {
-    throw new Error("useAuth must be used within an AuthProvider");
-  }
-  return context;
-};
+export const useAuth = () => useContext(AuthContext);
 
 // Default user credentials - exported so they can be used in login form
 export const MOCK_EMAIL = DEFAULT_EMAIL;
 export const MOCK_PASSWORD = DEFAULT_PASSWORD;
 
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const [currentUser, setCurrentUser] = useState<User | null>(null);
+  const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
   const { toast } = useToast();
+  const navigate = useNavigate();
 
-  // Check if user is logged in from localStorage on initial load
   useEffect(() => {
-    const storedUser = localStorage.getItem("currentUser");
-    if (storedUser) {
-      setCurrentUser(JSON.parse(storedUser));
-    }
-    setLoading(false);
-  }, []);
+    const unsubscribe = onAuthStateChanged(auth, (user) => {
+      setUser(user);
+      setLoading(false);
+      
+      // If user is logged in and on auth pages, redirect to home
+      if (user && (window.location.pathname === '/login' || window.location.pathname === '/signup')) {
+        navigate('/');
+      }
+    });
+
+    return () => unsubscribe();
+  }, [navigate]);
 
   // Mock login function
   const mockLogin = () => {
@@ -111,7 +117,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       // Check if credentials match default user
       if (email === DEFAULT_EMAIL && password === DEFAULT_PASSWORD) {
         const user = { email, id: "admin-id" };
-        setCurrentUser(user);
+        setUser(user);
         localStorage.setItem("currentUser", JSON.stringify(user));
         toast({
           title: "Login successful",
@@ -129,7 +135,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       }
 
       const loggedInUser = { email: user.email, id: user.id };
-      setCurrentUser(loggedInUser);
+      setUser(loggedInUser);
       localStorage.setItem("currentUser", JSON.stringify(loggedInUser));
       
       toast({
@@ -149,24 +155,23 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const logout = async () => {
     try {
-      setCurrentUser(null);
-      localStorage.removeItem("currentUser");
+      await signOut(auth);
       toast({
-        title: "Logout successful",
-        description: "You have been logged out.",
+        title: "Logged out successfully",
+        description: "Come back soon!",
       });
+      navigate('/login');
     } catch (error: any) {
       toast({
-        variant: "destructive",
-        title: "Logout failed",
+        title: "Error",
         description: error.message,
+        variant: "destructive",
       });
-      throw error;
     }
   };
 
   const value = {
-    currentUser,
+    user,
     loading,
     login,
     signup,
