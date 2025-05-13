@@ -1,7 +1,7 @@
 
 import { useAuth } from "@/context/AuthContext";
 import { Navigate } from "react-router-dom";
-import { useToast } from "@/components/ui/use-toast";
+import { useToast } from "@/hooks/use-toast";
 
 interface ProtectedRouteProps {
   children: React.ReactNode;

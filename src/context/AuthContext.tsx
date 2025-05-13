@@ -8,7 +8,7 @@ import {
   signOut 
 } from "firebase/auth";
 import { auth } from "@/lib/firebase";
-import { useToast } from "@/components/ui/use-toast";
+import { useToast } from "@/hooks/use-toast";
 
 interface AuthContextType {
   currentUser: User | null;
