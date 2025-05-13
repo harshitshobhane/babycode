@@ -49,21 +49,22 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         // Try to sign in first to check if the account exists
         await signInWithEmailAndPassword(auth, DEFAULT_EMAIL, DEFAULT_PASSWORD);
         console.log("Default user exists, skipping creation");
+        // Sign out after checking
+        await signOut(auth);
       } catch (error: any) {
         // If error code is user not found, create the user
         if (error.code === "auth/user-not-found") {
           try {
             await createUserWithEmailAndPassword(auth, DEFAULT_EMAIL, DEFAULT_PASSWORD);
             console.log("Default user created successfully");
+            // Sign out after creating
+            await signOut(auth);
           } catch (createError) {
             console.error("Error creating default user:", createError);
           }
         } else {
           console.error("Error checking for default user:", error);
         }
-      } finally {
-        // Sign out after checking/creating
-        await signOut(auth);
       }
     };
 
@@ -82,6 +83,12 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   // Mock login function
   const mockLogin = () => {
     login(DEFAULT_EMAIL, DEFAULT_PASSWORD)
+      .then(() => {
+        toast({
+          title: "Mock login successful",
+          description: "You have been logged in with the test account.",
+        });
+      })
       .catch((error) => {
         console.error("Mock login failed:", error);
         toast({
