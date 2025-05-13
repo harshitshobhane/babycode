@@ -16,6 +16,7 @@ interface AuthContextType {
   login: (email: string, password: string) => Promise<void>;
   signup: (email: string, password: string) => Promise<void>;
   logout: () => Promise<void>;
+  mockLogin: () => void; // Added mock login function
 }
 
 const AuthContext = createContext<AuthContextType | null>(null);
@@ -27,6 +28,10 @@ export const useAuth = () => {
   }
   return context;
 };
+
+// Mock user credentials
+export const MOCK_EMAIL = "test@example.com";
+export const MOCK_PASSWORD = "password123";
 
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [currentUser, setCurrentUser] = useState<User | null>(null);
@@ -41,6 +46,15 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
     return unsubscribe;
   }, []);
+
+  // Mock login function
+  const mockLogin = () => {
+    login(MOCK_EMAIL, MOCK_PASSWORD)
+      .catch(() => {
+        // If login fails (user doesn't exist), create the account
+        signup(MOCK_EMAIL, MOCK_PASSWORD);
+      });
+  };
 
   const signup = async (email: string, password: string) => {
     try {
@@ -99,6 +113,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     login,
     signup,
     logout,
+    mockLogin,
   };
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

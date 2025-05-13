@@ -1,3 +1,4 @@
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
@@ -97,5 +98,52 @@
 
   body {
     @apply bg-background text-foreground;
+    background-image: 
+      linear-gradient(to bottom right, rgba(235, 245, 255, 0.2), rgba(240, 255, 250, 0.3)),
+      radial-gradient(ellipse at top left, rgba(202, 242, 253, 0.4) 0%, transparent 50%),
+      radial-gradient(ellipse at bottom right, rgba(202, 242, 222, 0.4) 0%, transparent 50%);
+    background-attachment: fixed;
+    min-height: 100vh;
   }
+}
+
+@layer components {
+  .card-hover {
+    @apply transition-all duration-300 hover:shadow-md hover:-translate-y-1;
+  }
+  
+  .form-input-icon {
+    @apply absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground;
+  }
+}
+
+/* Toast animation improvements */
+@keyframes slideIn {
+  from {
+    transform: translateY(20px);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+@keyframes slideOut {
+  from {
+    transform: translateY(0);
+    opacity: 1;
+  }
+  to {
+    transform: translateY(-20px);
+    opacity: 0;
+  }
+}
+
+[data-state="open"] {
+  animation: slideIn 0.3s ease-out;
+}
+
+[data-state="closed"] {
+  animation: slideOut 0.3s ease-in;
 }
