@@ -1,18 +1,16 @@
 
 import React, { createContext, useContext, useEffect, useState } from "react";
-import { 
-  User, 
-  createUserWithEmailAndPassword, 
-  onAuthStateChanged, 
-  signInWithEmailAndPassword, 
-  signOut 
-} from "firebase/auth";
-import { auth } from "@/lib/firebase";
 import { useToast } from "@/hooks/use-toast";
 
-// Create a default user account on initialization
+// Default user credentials
 const DEFAULT_EMAIL = "admin@example.com";
 const DEFAULT_PASSWORD = "password123";
+
+// Simple mock user type
+interface User {
+  email: string;
+  id: string;
+}
 
 interface AuthContextType {
   currentUser: User | null;
@@ -42,42 +40,13 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [loading, setLoading] = useState(true);
   const { toast } = useToast();
 
-  // Create default user on first load if it doesn't exist
+  // Check if user is logged in from localStorage on initial load
   useEffect(() => {
-    const createDefaultUser = async () => {
-      try {
-        // Try to sign in first to check if the account exists
-        await signInWithEmailAndPassword(auth, DEFAULT_EMAIL, DEFAULT_PASSWORD);
-        console.log("Default user exists, skipping creation");
-        // Sign out after checking
-        await signOut(auth);
-      } catch (error: any) {
-        // If error code is user not found, create the user
-        if (error.code === "auth/user-not-found") {
-          try {
-            await createUserWithEmailAndPassword(auth, DEFAULT_EMAIL, DEFAULT_PASSWORD);
-            console.log("Default user created successfully");
-            // Sign out after creating
-            await signOut(auth);
-          } catch (createError) {
-            console.error("Error creating default user:", createError);
-          }
-        } else {
-          console.error("Error checking for default user:", error);
-        }
-      }
-    };
-
-    createDefaultUser();
-  }, []);
-
-  useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, (user) => {
-      setCurrentUser(user);
-      setLoading(false);
-    });
-
-    return unsubscribe;
+    const storedUser = localStorage.getItem("currentUser");
+    if (storedUser) {
+      setCurrentUser(JSON.parse(storedUser));
+    }
+    setLoading(false);
   }, []);
 
   // Mock login function
@@ -90,18 +59,33 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         });
       })
       .catch((error) => {
-        console.error("Mock login failed:", error);
         toast({
           variant: "destructive",
           title: "Mock login failed",
-          description: "The test account login failed. Please try again.",
+          description: error.message,
         });
       });
   };
 
   const signup = async (email: string, password: string) => {
     try {
-      await createUserWithEmailAndPassword(auth, email, password);
+      // Simple validation
+      if (!email || !password) {
+        throw new Error("Email and password are required");
+      }
+
+      // Check if user already exists in localStorage
+      const users = JSON.parse(localStorage.getItem("users") || "[]");
+      if (users.some((user: any) => user.email === email)) {
+        throw new Error("User already exists");
+      }
+
+      // Create new user
+      const newUser = { email, id: Date.now().toString() };
+      localStorage.setItem("users", JSON.stringify([...users, { email, password, id: newUser.id }]));
+      
+      // Don't auto-login on signup
+      
       toast({
         title: "Account created",
         description: "You have successfully signed up!",
@@ -119,7 +103,35 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const login = async (email: string, password: string) => {
     try {
-      await signInWithEmailAndPassword(auth, email, password);
+      // Simple validation
+      if (!email || !password) {
+        throw new Error("Email and password are required");
+      }
+
+      // Check if credentials match default user
+      if (email === DEFAULT_EMAIL && password === DEFAULT_PASSWORD) {
+        const user = { email, id: "admin-id" };
+        setCurrentUser(user);
+        localStorage.setItem("currentUser", JSON.stringify(user));
+        toast({
+          title: "Login successful",
+          description: "You are now logged in!",
+        });
+        return;
+      }
+
+      // Check stored users
+      const users = JSON.parse(localStorage.getItem("users") || "[]");
+      const user = users.find((u: any) => u.email === email && u.password === password);
+      
+      if (!user) {
+        throw new Error("Invalid email or password");
+      }
+
+      const loggedInUser = { email: user.email, id: user.id };
+      setCurrentUser(loggedInUser);
+      localStorage.setItem("currentUser", JSON.stringify(loggedInUser));
+      
       toast({
         title: "Login successful",
         description: "You are now logged in!",
@@ -137,7 +149,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const logout = async () => {
     try {
-      await signOut(auth);
+      setCurrentUser(null);
+      localStorage.removeItem("currentUser");
       toast({
         title: "Logout successful",
         description: "You have been logged out.",

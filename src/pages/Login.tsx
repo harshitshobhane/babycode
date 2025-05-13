@@ -31,14 +31,7 @@ const Login = () => {
       navigate("/");
     } catch (err: any) {
       console.error("Login error:", err);
-      // Provide a more user-friendly error message
-      if (err.code === 'auth/user-not-found' || err.code === 'auth/wrong-password') {
-        setError("Invalid email or password. Please try again.");
-      } else if (err.code === 'auth/api-key-not-valid') {
-        setError("Authentication service error. Try using the One-Click Login button instead.");
-      } else {
-        setError(err.message || "Failed to log in");
-      }
+      setError(err.message || "Failed to log in");
     } finally {
       setLoading(false);
     }

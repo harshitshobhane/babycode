@@ -39,7 +39,7 @@ const Signup = () => {
     try {
       setLoading(true);
       await signup(email, password);
-      navigate("/");
+      navigate("/login");
     } catch (err: any) {
       setError(err.message || "Failed to create account");
     } finally {
